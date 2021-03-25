@@ -8,7 +8,8 @@ path = cdi.install(file_directory='c:\\data\\chromedriver\\', verbose=True, chmo
 print('Installed chromedriver to path: %s' % path)
 
 driver = webdriver.Chrome("c:\\data\\chromedriver\\chromedriver.exe")
-driver.get("https://www.bestbuy.ca/en-ca/product/evga-geforce-rtx-3070-xc3-ultra-8gb-gddr6-video-card/15147122")
+# driver.get("https://www.bestbuy.ca/en-ca/product/evga-geforce-rtx-3070-xc3-ultra-8gb-gddr6-video-card/15147122")
+driver.get("https://www.bestbuy.ca/en-ca/product/bioshock-the-collection-switch/14538667")
 
 content = driver.page_source
 soup = BeautifulSoup(content)
