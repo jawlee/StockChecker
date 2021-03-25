@@ -13,12 +13,15 @@ driver.get("https://www.bestbuy.ca/en-ca/product/evga-geforce-rtx-3070-xc3-ultra
 content = driver.page_source
 soup = BeautifulSoup(content)
 # for a in soup.findAll('a',href=True, attrs={'class':'_31qSD5'}):
-    availMSg=soup.find('span', attrs={'class':'availabilityMessage_ig-s5 container_3LC03'})
-    if availMSg = "Coming soon":
-        print('availability is: ' +availMSg)
-        print('\n\n')
+availMSg=soup.find('span', attrs={'class':'availabilityMessage_ig-s5 container_3LC03'})
+if availMSg = "Coming soon":
+    print('availability is: ' +availMSg)
+    print('\n\n')
+else
+    print('Not Coming soon')
 
-# df = pd.DataFrame({'Product Name':products,'Price':prices,'Rating':ratings}) 
-# df.to_csv('products.csv', index=False, encoding='utf-8')
-
+print ("=========================")
+print ("html file")
 print(soup)
+
+driver.find_element_by_class_name("button_2m0Gt primary_RXOwf addToCartButton_1op0t addToCartButton regular_23pTm").click()
