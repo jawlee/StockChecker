@@ -5,16 +5,26 @@ from chromedriver_py import binary_path
 
 import requests
 
-from discord import Webhook, RequestsWebhookAdapter
+from datetime import datetime
 
+date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")
+
+from discord import Webhook, RequestsWebhookAdapter
+# Set up Discord
 discordwebhook = Webhook.from_url("https://discord.com/api/webhooks/824516450730901515/fCwDFCAQhqFgsErMgEh9rt8LKF-KzrgX-BIABDCHMfDv2YiDW2Aq3RUEe4hTFo7icGWC", adapter=RequestsWebhookAdapter())
 
+#Set up Chrome
 driver = webdriver.Chrome(executable_path=binary_path)
+
 urlList = [
-    "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/ref=pd_rhf_ee_s_rpt_age_toy_picks_0_2/139-8353022-5665244?_encoding=UTF8&pd_rd_i=B07S9MP986&pd_rd_r=a4963629-0d4b-46d2-ba8e-669d66612ef6&pd_rd_w=I2zVK&pd_rd_wg=LRnYP&pf_rd_p=824d06ea-8ce2-4797-8150-02f913554268&pf_rd_r=KGGR8NNPV2PAFPBQS81D&psc=1&refRID=KGGR8NNPV2PAFPBQS81D",
-    #"https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/ref=sr_1_6?dchild=1&keywords=rtx+3070&qid=1616651057&sr=8-6"
+    "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
+    "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
+    "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
+    "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
+    "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
+    "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ/"
     ]
-print ("\n\n\n")
+print ("Done Setup\n\n\n")
 
 for url in urlList:
     driver.get(url)
@@ -30,7 +40,13 @@ for url in urlList:
     elif "In Stock" in availMsg:
         driver.find_element_by_id("add-to-cart-button").click()
         stockStatus='IN STOCK!!!!!!!!!!!!!'
-        discordwebhook.send('' +stockStatus+ '\n' +url)
+        discordwebhook.send('@gpu-stock AMAZON STOCK ALERT!\n' +url)
+
+        #Save HTML to file
+            availFile_Amazon = open("Available_AMZ_"+date+".txt","w+")
+            availFile_Amazon.write(url+"\n\n")
+            availFile_Amazon.write(soup)
+            availFile_Amazon.close()
     else:
         stockStatus ="elsenothing"
         print('something else')
