@@ -3,11 +3,10 @@ from bs4 import BeautifulSoup
 
 from chromedriver_py import binary_path
 
-import requests
+# import requests
+import concurrent.futures
 
 from datetime import datetime
-
-
 import time
 
 from discord import Webhook, RequestsWebhookAdapter
@@ -16,11 +15,18 @@ urlList = [
     "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
     "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
     "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
+    "https://www.amazon.ca/MSI-MAG-Core-Liquid-360R/dp/B087YL4DDY",
+    "https://www.amazon.ca/Asus-RT-AC68U-Wireless-Dual-Band-Gigabit/dp/B00FB45SI4",
     # "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
     # "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
     # "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ/"
     ]
 
+cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
+
+MAX_THREADS = 30
+
+# Function to instantiate all global vars 
 def setup():
     startSetupTime = time.perf_counter()
 
@@ -33,33 +39,53 @@ def setup():
     discordwebhook = Webhook.from_url("https://discord.com/api/webhooks/824516450730901515/fCwDFCAQhqFgsErMgEh9rt8LKF-KzrgX-BIABDCHMfDv2YiDW2Aq3RUEe4hTFo7icGWC", adapter=RequestsWebhookAdapter())
 
     #Set up Chrome
-    global driver 
-    driver = webdriver.Chrome(executable_path=binary_path)
+    # global driver 
+    # driver = webdriver.Chrome(executable_path=binary_path)
 
     
     endSetupTime = time.perf_counter()
     dur = endSetupTime - startSetupTime
-    print (f"Done Setup in {dur} seconds\n\n\n")
+    print (f"Done Setup in {dur} seconds\n")
 
+
+# Check Stock function
 def checkStock(url):
+    
+    startCheckTime = time.perf_counter()
+    driver = webdriver.Chrome(executable_path=binary_path)
     driver.get(url)
+    endCheckTime = time.perf_counter()
 
     content = driver.page_source
     soup = BeautifulSoup(content, 'html.parser')
     availMsg = soup.find('input', attrs={'id':'add-to-cart-button'})
-    merchantInfo = soup.find('a', attrs={'id':'SSOFpopoverLink'})
+    merchantInfo = soup.find('div', attrs={'id':'merchant-info'})  
+    prcSoup = soup.find('span', attrs={'id':'priceblock_ourprice'})
+    prodTitleSoup = soup.find('span', attrs={'id':'productTitle'})
+    
     # print("availMsg is: ")
     # print(availMsg)
-
+    
     stockStatus ="Not defined yet"
-
-    if availMsg is not None and "Fulfilled by Amazon" in merchantInfo:
+    # print(f"merchantInfo is: {merchantInfo.text}")
+    if availMsg is not None and "by Amazon" in merchantInfo.text:
+        
         try:
             driver.find_element_by_id("add-to-cart-button").click()
-
+            print("Added to Cart")
             stockStatus='IN STOCK!!!!!!!!!!!!!'
-            # discordwebhook.send('@gpu-stock TESTING!!!! AMAZON STOCK ALERT!\n' +url)
+            
+            productPrice = prcSoup.text
+            productPrice = ' '.join(productPrice.split())
 
+            productTitle = prodTitleSoup.text
+            productTitle = ' '.join(productTitle.split())
+
+            print(f"Product: {productTitle}")
+            print(f"Price: {productPrice}")
+            discordwebhook.send(f'@gpu-stock AMAZON STOCK ALERT!\nPrice: {productPrice}\nProduct: {productTitle}\n{url}')
+            discordwebhook.send(f'Cart URL: {cartUrl}')
+            
             #Save HTML to file
             # availFile_Amazon = open(f'Available_AMZ_{date}.txt',"w+")
             # availFile_Amazon.write(url+"\n\n")
@@ -67,24 +93,35 @@ def checkStock(url):
             # availFile_Amazon.close()
             # driver.find_element_by_id("add-to-cart-button").click()
         except:
+            print("Issue Adding to Cart")
             pass
     else:
         stockStatus ="Not Available / Not Fulfilled by Amazon"
         # print(stockStatus)
-        
-    print("===========================================================================\n")
+    
     print(url)
     print('Availability is: ' +stockStatus)
+    
+    durCheck = endCheckTime - startCheckTime
+    print(f"Duration of driver: {durCheck} seconds")
+    print("===========================================================================\n")
 
 def main():
-    setup()
-    print(urlList)
-    for u in urlList:
-        startCheckTime = time.perf_counter()
-        checkStock(u)
-        endCheckTime = time.perf_counter()
-        durCheck = endCheckTime - startCheckTime
-        print(f"Duration: {durCheck} seconds")
+    startTime = time.perf_counter()
+    
+    threads = min(MAX_THREADS, len(urlList))
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+        executor.map(checkStock, urlList)
+    
+    # The below does not use multithreading
+    # for u in urlList:
+    #     checkStock(u)
+
+    endTime = time.perf_counter()
+    totDurCheck = endTime - startTime
+    print(f"Duration of script: {totDurCheck} seconds")
+    
 
 if __name__ == "__main__":
     main()
