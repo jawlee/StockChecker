@@ -13,8 +13,8 @@ from discord import Webhook, RequestsWebhookAdapter
 
 urlList = [
     "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
-    "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
-    "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
+    # "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
+    # "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
     "https://www.amazon.ca/MSI-MAG-Core-Liquid-360R/dp/B087YL4DDY",
     "https://www.amazon.ca/Asus-RT-AC68U-Wireless-Dual-Band-Gigabit/dp/B00FB45SI4",
     # "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
@@ -26,31 +26,16 @@ cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
 
 MAX_THREADS = 30
 
+
 # Function to instantiate all global vars 
 def setup():
-    startSetupTime = time.perf_counter()
-
-    # Set up Date
-    global date 
-    date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")
-    
     # Set up Discord
-    global discordwebhook 
-    discordwebhook = Webhook.from_url("https://discord.com/api/webhooks/824516450730901515/fCwDFCAQhqFgsErMgEh9rt8LKF-KzrgX-BIABDCHMfDv2YiDW2Aq3RUEe4hTFo7icGWC", adapter=RequestsWebhookAdapter())
-
-    #Set up Chrome
-    # global driver 
-    # driver = webdriver.Chrome(executable_path=binary_path)
-
-    
-    endSetupTime = time.perf_counter()
-    dur = endSetupTime - startSetupTime
-    print (f"Done Setup in {dur} seconds\n")
+    discordwebhook = Webhook.from_url("https://discord.com/api/webhooks/825198944673464380/APoOZe7FHZ-mT5w5o7CAq6-R9zlmb79HwT7xeliWQi9JbErhrnYam_cnK9T9dc7wegge", adapter=RequestsWebhookAdapter())
 
 
 # Check Stock function
 def checkStock(url):
-    
+    setup()
     startCheckTime = time.perf_counter()
     driver = webdriver.Chrome(executable_path=binary_path)
     driver.get(url)
@@ -71,8 +56,8 @@ def checkStock(url):
     if availMsg is not None and "by Amazon" in merchantInfo.text:
         
         try:
-            driver.find_element_by_id("add-to-cart-button").click()
-            print("Added to Cart")
+            # driver.find_element_by_id("add-to-cart-button").click()
+            # print("Added to Cart")
             stockStatus='IN STOCK!!!!!!!!!!!!!'
             
             productPrice = prcSoup.text
@@ -83,10 +68,13 @@ def checkStock(url):
 
             print(f"Product: {productTitle}")
             print(f"Price: {productPrice}")
-            discordwebhook.send(f'@gpu-stock AMAZON STOCK ALERT!\nPrice: {productPrice}\nProduct: {productTitle}\n{url}')
+            discordwebhook.send(f'AMAZON STOCK ALERT!'+url)
+            discordwebhook.send(f'Price: {productPrice}\nProduct: {productTitle}')
             discordwebhook.send(f'Cart URL: {cartUrl}')
+            # print("Sent Discord message")
             
             #Save HTML to file
+            # date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")
             # availFile_Amazon = open(f'Available_AMZ_{date}.txt',"w+")
             # availFile_Amazon.write(url+"\n\n")
             # availFile_Amazon.write(str(soup))
@@ -100,10 +88,10 @@ def checkStock(url):
         # print(stockStatus)
     
     print(url)
-    print('Availability is: ' +stockStatus)
+    print('Availability: ' +stockStatus)
     
     durCheck = endCheckTime - startCheckTime
-    print(f"Duration of driver: {durCheck} seconds")
+    print(f"Duration of process: {durCheck} seconds")
     print("===========================================================================\n")
 
 def main():
