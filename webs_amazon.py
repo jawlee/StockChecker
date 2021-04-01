@@ -52,8 +52,8 @@ def setup():
     global pwd
     pwd = config['Amazon Info']['password']
     
-    global foundStock 
-    foundStock = False
+    # global foundStock 
+    # foundStock = False
 
     dURL = config['Discord URL']['wURL']
     print(f"username = {loginID}")
@@ -126,27 +126,24 @@ def checkStock(url):
     # option.add_argument('proxy-server=106.122.8.54:3128')
     driver = webdriver.Chrome(executable_path=binary_path,options=option)
     print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Checking Stock')
+    startTime = time.perf_counter()
     driver.get(url)
     
     content = driver.page_source
     soup = BeautifulSoup(content, 'html.parser')
-
+    
     # Parse Amazon website tags
     availMsg = soup.find('input', attrs={'id':'add-to-cart-button'})
     merchantInfo = soup.find('div', attrs={'id':'merchant-info'})  
     prcSoup = soup.find('span', attrs={'id':'priceblock_ourprice'})
     prodTitleSoup = soup.find('span', attrs={'id':'productTitle'})
-    
-    # Get product price
-    productPrice = prcSoup.text
-    productPrice = ' '.join(productPrice.split())
-
+   
     # Get product title
     productTitle = prodTitleSoup.text
     productTitle = ' '.join(productTitle.split())
-
+    
     stockStatus ="Not defined yet"
- 
+    print("Checking if fulfilled by Amazon")
     if availMsg is not None and "by Amazon" in merchantInfo.text:
         try:
             print("Found Add to Cart Button & Fulfilled by Amazon")
@@ -154,6 +151,10 @@ def checkStock(url):
             ATC(url)
             
             stockStatus='IN STOCK!!!!!!!!!!!!!'
+             # Get product price
+            productPrice = prcSoup.text
+            productPrice = ' '.join(productPrice.split())
+    
 
             discordwebhook.send(f'AMAZON STOCK ALERT!!!! {url}\nPrice: {productPrice}\nProduct: {productTitle}')
             # discordwebhook.send(f'Cart URL: {cartUrl}')
@@ -171,13 +172,16 @@ def checkStock(url):
             pass
     else:
         stockStatus ="Not Available / Not Fulfilled by Amazon"
-    driver.close()
-    driver.quit()
-    print(f"Product: {productTitle}\nPrice: {productPrice}\nAvailability: {stockStatus}")
+    # driver.close()
+    # driver.quit()
+    print(f'Product: {productTitle}\nAvailability: {stockStatus}')
+    endTime = time.perf_counter()
+    totDurCheck = endTime - startTime
+    print(f"Duration of script: {totDurCheck} seconds")
     print("===========================================================================\n")
 
 def main():
-    startTime = time.perf_counter()
+    
     setup()
     login()
     
@@ -193,9 +197,7 @@ def main():
     # for u in urlList:
     #     checkStock(u)
 
-    endTime = time.perf_counter()
-    totDurCheck = endTime - startTime
-    print(f"Duration of script: {totDurCheck} seconds")
+    
     
 if __name__ == "__main__":
     main()
