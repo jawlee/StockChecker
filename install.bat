@@ -1,5 +1,7 @@
-echo pip install selenium
-echo pip install chromedriver_py
-echo pip install bs4
-echo pip install random
-echo pip install discord
+python -m pip install --upgrade pip
+pip install selenium
+pip install chromedriver_py==89.0.4389.23
+pip install bs4
+pip install random
+pip install discord
+pip install requests
