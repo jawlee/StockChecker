@@ -38,8 +38,7 @@ urlList = [
 ATCList = []
 
 cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
-global MAX_THREADS
-MAX_THREADS = 2
+
 
 configFile = "AMZconfig.ini"
 
@@ -189,6 +188,9 @@ def main():
     
     setup()
     login()
+    
+    global MAX_THREADS
+    MAX_THREADS = 2
     
     threads = min(MAX_THREADS, len(urlList))
     while(True):
