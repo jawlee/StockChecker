@@ -19,28 +19,29 @@ from discord import Webhook, RequestsWebhookAdapter
 urlList = [
     # Test URLs
     # 
-    # "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
+     "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
     # "https://www.amazon.ca/MSI-MAG-Core-Liquid-360R/dp/B087YL4DDY",
     # "https://www.amazon.ca/Asus-RT-AC68U-Wireless-Dual-Band-Gigabit/dp/B00FB45SI4",
     #
     # ===================================================================================
     # Real URLs
     #
-    "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
-    "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
-    "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
-    "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
-    "https://www.amazon.ca/EVGA-10G-P5-3885-KR-GeForce-Cooling-Backplate/dp/B08HR55YB5",
-    "https://www.amazon.ca/Graphics-DisplayPort-Axial-tech-Protective-Backplate/dp/B08L8LG4M3",
-    "https://www.amazon.ca/EVGA-08G-P5-3755-KR-GeForce-Cooling-Backplate/dp/B08L8L71SM"
+    # "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
+    # "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
+    # "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
+    # "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
+    # "https://www.amazon.ca/EVGA-10G-P5-3885-KR-GeForce-Cooling-Backplate/dp/B08HR55YB5",
+    # "https://www.amazon.ca/Graphics-DisplayPort-Axial-tech-Protective-Backplate/dp/B08L8LG4M3",
+    # "https://www.amazon.ca/EVGA-08G-P5-3755-KR-GeForce-Cooling-Backplate/dp/B08L8L71SM",
     ]
 
 ATCList = []
 
 cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
 
-
 configFile = "AMZconfig.ini"
+boughtList = []
+
 
 # Setup variables and User Info
 def setup():
@@ -74,6 +75,7 @@ def login():
     
     chrome_options = Options()
     chrome_options.add_argument("user-data-dir=selenium") 
+    option.add_argument("--enable-javascript")
     # option.add_argument('proxy-server=106.122.8.54:3128')
 
     global logindriver
@@ -102,20 +104,54 @@ def randomGen():
 # Add to cart function
 def ATC(url):
     print("in ATC")
+    print(f'ATCList length is: {len(ATCList)}')
     if len(ATCList) == 0:
         try:
             ATCList.append(url)
             logindriver.get(url)
             print('Login Session trying to add to cart')
+            #error here
             logindriver.find_element_by_id("add-to-cart-button").click()
             print("Add to cart clicked")
+            print(f'ATCList length is now: {len(ATCList)}')
             time.sleep(1.5)
+            # if url not in boughtList:
+                # BYN(url)
         except:
             ATCList.pop(0)
             print("Login Session Error. Unable to add to cart.")
+            errDiscord('ERROR DETECTED')            
     else:
         print("Item in cart already.")
     print("quitting ATC")
+
+def errDiscord(msg):
+    errDiscord = Webhook.from_url("https://discord.com/api/webhooks/827763869807542312/UAuSRTB27DK72bSigNC8cksZYn_26kBfcpijHcHz963NGhJGBuAqE3A7y51xAKfUgNZi", adapter=RequestsWebhookAdapter())
+    errDiscord.send(msg)
+
+def BYN(url):
+    print("In BYN")
+    # logindriver.get(url)
+    print("BYN got URL")
+    logindriver.get("https://www.amazon.ca/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1")
+    
+    time.sleep(2)
+    # logindriver.find_element_by_id('buy-now-button').click()
+    # print('clicked Buy Now button')
+    # time.sleep(3)
+    # logindriver.find_element_by_id('turbo-checkout-pyo-button').click()
+    # print('Clicked Place Your Order')
+
+    deliv = logindriver.find_element_by_xpath('//input[@title="FREE Prime Delivery"]')
+    print(deliv)
+    deliv.click()
+    print("clicked FREE PRIME Delivery button")
+    time.sleep(1)
+    logindriver.find_element_by_xpath('//input[@name="placeYourOrder1"]').click()
+    print("Place Your Order button clicked")
+    errDiscord('BOUGHT ONE!!!!!!!!')
+    boughtList.append(url)
+    print(f'boughtList count now: {len(boughtList)}')
 
 # Check Stock function
 def checkStock(url):
@@ -175,6 +211,7 @@ def checkStock(url):
             # driver.find_element_by_id("add-to-cart-button").click()
         except:
             print("Issue Adding to Cart")
+            errDiscord()
             pass
     else:
         stockStatus ="Not Available / Not Fulfilled by Amazon"
@@ -201,13 +238,12 @@ def main():
         totDurCheck = endTime - startTime
         print(f"Finished Checking urlList in {totDurCheck} seconds")
         print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Sleeping for 20 seconds')
-        time.sleep(20)   
+        time.sleep(60)   
     
     # The below does not use multithreading
     # for u in urlList:
     #     checkStock(u)
 
-    
     
 if __name__ == "__main__":
     main()
