@@ -38,7 +38,7 @@ urlList = [
 ATCList = []
 
 cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
-
+global MAX_THREADS
 MAX_THREADS = 2
 
 configFile = "AMZconfig.ini"
@@ -69,6 +69,9 @@ def login():
     option.add_argument('--disable-blink-features=AutomationControlled')
     option.add_argument("window-size=1920,1080")
     option.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36")
+    # experimentalFlags = ['new-usb-backend@1']
+    # chromeLocalStatePrefs = { 'browser.enabled_labs_experiments' : experimentalFlags}
+    # option.add_experimental_option('localState',chromeLocalStatePrefs)
     
     chrome_options = Options()
     chrome_options.add_argument("user-data-dir=selenium") 
@@ -118,15 +121,20 @@ def ATC(url):
 # Check Stock function
 def checkStock(url):
     
-    #Open Browsere
+    time.sleep(2)
+    startTime = time.perf_counter()
+    #Open Browser
     option = webdriver.ChromeOptions()
     option.add_argument('--disable-blink-features=AutomationControlled')
     option.add_argument("window-size=1920,1080")
     option.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36")
+    # experimentalFlags = ['new-usb-backend@1']
+    # chromeLocalStatePrefs = { 'browser.enabled_labs_experiments' : experimentalFlags}
+    # option.add_experimental_option('localState',chromeLocalStatePrefs)
     # option.add_argument('proxy-server=106.122.8.54:3128')
     driver = webdriver.Chrome(executable_path=binary_path,options=option)
     print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Checking Stock')
-    startTime = time.perf_counter()
+    
     driver.get(url)
     
     content = driver.page_source
@@ -143,7 +151,6 @@ def checkStock(url):
     productTitle = ' '.join(productTitle.split())
     
     stockStatus ="Not defined yet"
-    print("Checking if fulfilled by Amazon")
     if availMsg is not None and "by Amazon" in merchantInfo.text:
         try:
             print("Found Add to Cart Button & Fulfilled by Amazon")
@@ -172,8 +179,6 @@ def checkStock(url):
             pass
     else:
         stockStatus ="Not Available / Not Fulfilled by Amazon"
-    # driver.close()
-    # driver.quit()
     print(f'Product: {productTitle}\nAvailability: {stockStatus}')
     endTime = time.perf_counter()
     totDurCheck = endTime - startTime
@@ -187,10 +192,13 @@ def main():
     
     threads = min(MAX_THREADS, len(urlList))
     while(True):
+        startTime = time.perf_counter()
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
-            executor.map(checkStock, urlList)
-            time.sleep(5)
-        print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Sleeping for 30 seconds')
+            futures = [executor.submit(checkStock, u) for u in urlList]
+        endTime = time.perf_counter()
+        totDurCheck = endTime - startTime
+        print(f"Finished Checking urlList in {totDurCheck} seconds")
+        print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Sleeping for 20 seconds')
         time.sleep(20)   
     
     # The below does not use multithreading
