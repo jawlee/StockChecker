@@ -19,20 +19,20 @@ from discord import Webhook, RequestsWebhookAdapter
 urlList = [
     # Test URLs
     # 
-     "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
+    # "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
     # "https://www.amazon.ca/MSI-MAG-Core-Liquid-360R/dp/B087YL4DDY",
     # "https://www.amazon.ca/Asus-RT-AC68U-Wireless-Dual-Band-Gigabit/dp/B00FB45SI4",
     #
     # ===================================================================================
     # Real URLs
     #
-    # "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
-    # "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
-    # "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
-    # "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
-    # "https://www.amazon.ca/EVGA-10G-P5-3885-KR-GeForce-Cooling-Backplate/dp/B08HR55YB5",
-    # "https://www.amazon.ca/Graphics-DisplayPort-Axial-tech-Protective-Backplate/dp/B08L8LG4M3",
-    # "https://www.amazon.ca/EVGA-08G-P5-3755-KR-GeForce-Cooling-Backplate/dp/B08L8L71SM",
+    "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
+    "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
+    "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
+    "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
+    "https://www.amazon.ca/EVGA-10G-P5-3885-KR-GeForce-Cooling-Backplate/dp/B08HR55YB5",
+    "https://www.amazon.ca/Graphics-DisplayPort-Axial-tech-Protective-Backplate/dp/B08L8LG4M3",
+    "https://www.amazon.ca/EVGA-08G-P5-3755-KR-GeForce-Cooling-Backplate/dp/B08L8L71SM"
     ]
 
 ATCList = []
