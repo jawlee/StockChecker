@@ -115,8 +115,8 @@ def ATC(url):
             print("Add to cart clicked")
             print(f'ATCList length is now: {len(ATCList)}')
             time.sleep(1.5)
-            # if url not in boughtList:
-                # BYN(url)
+            if url not in boughtList:
+                BYN(url)
         except:
             ATCList.pop(0)
             print("Login Session Error. Unable to add to cart.")
