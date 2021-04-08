@@ -16,31 +16,12 @@ import configparser
 
 from discord import Webhook, RequestsWebhookAdapter
 
-urlList = [
-    # Test URLs
-    # 
-    # "https://www.amazon.ca/Dogs-Sofa-Jigsaw-Puzzle-Piece/dp/B07S9MP986/",
-    # "https://www.amazon.ca/MSI-MAG-Core-Liquid-360R/dp/B087YL4DDY",
-    # "https://www.amazon.ca/Asus-RT-AC68U-Wireless-Dual-Band-Gigabit/dp/B00FB45SI4",
-    #
-    # ===================================================================================
-    # Real URLs
-    #
-    "https://www.amazon.ca/MSI-GeForce-RTX-3070-Architecture/dp/B08KWPDXJZ/",
-    "https://www.amazon.ca/EVGA-GeForce-3060-Graphics-08G-P5-3663-KR/dp/B08R876RTH/",
-    "https://www.amazon.ca/EVGA-10G-P5-3897-KR-GeForce-Technology-Backplate/dp/B08HR3Y5GQ",
-    "https://www.amazon.ca/Graphics-IceStorm-Advanced-Lighting-ZT-A30700H-10P/dp/B08LF1CWT2",
-    "https://www.amazon.ca/EVGA-10G-P5-3885-KR-GeForce-Cooling-Backplate/dp/B08HR55YB5",
-    "https://www.amazon.ca/Graphics-DisplayPort-Axial-tech-Protective-Backplate/dp/B08L8LG4M3",
-    "https://www.amazon.ca/EVGA-08G-P5-3755-KR-GeForce-Cooling-Backplate/dp/B08L8L71SM"
-    ]
 
-ATCList = []
 
 cartUrl = "https://www.amazon.ca/gp/cart/view.html?ref_=nav_cart"
 
 configFile = "AMZconfig.ini"
-boughtList = []
+
 
 
 # Setup variables and User Info
@@ -56,12 +37,28 @@ def setup():
     # foundStock = False
 
     dURL = config['Discord URL']['wURL']
+    derrURL = config['Discord URL']['errURL']
     print(f"username = {loginID}")
     print(f"passowrd = {pwd}")
     print(f"discord URL = {dURL}")
 
     global discordwebhook
     discordwebhook = Webhook.from_url(dURL, adapter=RequestsWebhookAdapter())
+
+    global errDiscord
+    errDiscord = Webhook.from_url(derrURL, adapter=RequestsWebhookAdapter())
+
+    global urlList 
+    urlList = []   
+    urlList_pre = config['URL List']['uList']
+    urlList_pre.strip(',')
+    urlList = urlList_pre.strip().splitlines()
+
+    global ATCList 
+    ATCList = []
+    
+    global boughtList
+    boughtList = []
 
 # Login function
 def login():
@@ -114,7 +111,6 @@ def ATC(url):
             logindriver.find_element_by_id("add-to-cart-button").click()
             print("Add to cart clicked")
             print(f'ATCList length is now: {len(ATCList)}')
-            time.sleep(1.5)
             if url not in boughtList:
                 BYN(url)
         except:
@@ -126,7 +122,6 @@ def ATC(url):
     print("quitting ATC")
 
 def errDiscord(msg):
-    errDiscord = Webhook.from_url("https://discord.com/api/webhooks/827763869807542312/UAuSRTB27DK72bSigNC8cksZYn_26kBfcpijHcHz963NGhJGBuAqE3A7y51xAKfUgNZi", adapter=RequestsWebhookAdapter())
     errDiscord.send(msg)
 
 def BYN(url):
@@ -145,8 +140,6 @@ def BYN(url):
     deliv = logindriver.find_element_by_xpath('//input[@title="FREE Prime Delivery"]')
     print(deliv)
     deliv.click()
-    print("clicked FREE PRIME Delivery button")
-    time.sleep(1)
     logindriver.find_element_by_xpath('//input[@name="placeYourOrder1"]').click()
     print("Place Your Order button clicked")
     errDiscord('BOUGHT ONE!!!!!!!!')
@@ -156,7 +149,7 @@ def BYN(url):
 # Check Stock function
 def checkStock(url):
     
-    time.sleep(2)
+    time.sleep(1)
     startTime = time.perf_counter()
     #Open Browser
     option = webdriver.ChromeOptions()
@@ -189,17 +182,14 @@ def checkStock(url):
     if availMsg is not None and "by Amazon" in merchantInfo.text:
         try:
             print("Found Add to Cart Button & Fulfilled by Amazon")
-
-            ATC(url)
-            
+            ATC(url)         
             stockStatus='IN STOCK!!!!!!!!!!!!!'
-             # Get product price
+            
+            # Get product price
             productPrice = prcSoup.text
             productPrice = ' '.join(productPrice.split())
     
-
             discordwebhook.send(f'AMAZON STOCK ALERT!!!! {url}\nPrice: {productPrice}\nProduct: {productTitle}')
-            # discordwebhook.send(f'Cart URL: {cartUrl}')
             print("Sent Discord message")
             
             #Save HTML to file
@@ -211,7 +201,7 @@ def checkStock(url):
             # driver.find_element_by_id("add-to-cart-button").click()
         except:
             print("Issue Adding to Cart")
-            errDiscord()
+            errDiscord("Issue - Anonymous Add to Cart")
             pass
     else:
         stockStatus ="Not Available / Not Fulfilled by Amazon"
@@ -226,10 +216,14 @@ def main():
     setup()
     login()
     
+    print(urlList)
+    print(f'Length of URL List is: {len(urlList)}')
+
     global MAX_THREADS
     MAX_THREADS = 2
     
     threads = min(MAX_THREADS, len(urlList))
+
     while(True):
         startTime = time.perf_counter()
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
@@ -237,8 +231,10 @@ def main():
         endTime = time.perf_counter()
         totDurCheck = endTime - startTime
         print(f"Finished Checking urlList in {totDurCheck} seconds")
+        print(f'boughtList count now: {len(boughtList)}')
+        print(f'ATCList length is: {len(ATCList)}')
         print(f'{datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p")} Sleeping for 20 seconds')
-        time.sleep(60)   
+        time.sleep(20)   
     
     # The below does not use multithreading
     # for u in urlList:
